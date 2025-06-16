@@ -187,8 +187,9 @@ export default function HamiltonianSimulation() {
             maxCoords.y = Math.round(positions[i * 3 + 1])
           }
 
-          if (H < 5) energyCounts.low++
-          else if (H < 12) energyCounts.med++
+          // Energy distribution based on average potential energy thresholds
+          if (H < 3) energyCounts.low++
+          else if (H < 8) energyCounts.med++
           else energyCounts.high++
 
           color.setHSL(0.7 - (H / 20) * 0.7, 1.0, 0.5)
@@ -218,7 +219,7 @@ export default function HamiltonianSimulation() {
       }) {
         let systemState = "System Stable"
         if (data.avgT > 0.8) systemState = "High Motion Detected!"
-        else if (data.avgV > 5) systemState = "High Energy Concentration"
+        else if (data.avgV > 8) systemState = "High Energy Concentration"
 
         const lowPercent = (data.energyCounts.low / data.totalPoints) * 100
         const medPercent = (data.energyCounts.med / data.totalPoints) * 100
@@ -263,7 +264,7 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
 
       <div
         ref={logContainerRef}
-        className="absolute bottom-8 left-8 w-80 h-40 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
+        className="absolute bottom-8 left-8 w-80 h-48 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#4b5563 transparent",
