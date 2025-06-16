@@ -10,6 +10,16 @@ export default function HamiltonianSimulation() {
   const sceneRef = useRef<any>(null)
 
   useEffect(() => {
+    // Force full screen immediately
+    document.documentElement.style.width = "100%"
+    document.documentElement.style.height = "100%"
+    document.documentElement.style.margin = "0"
+    document.documentElement.style.padding = "0"
+    document.body.style.width = "100%"
+    document.body.style.height = "100%"
+    document.body.style.margin = "0"
+    document.body.style.padding = "0"
+
     // Dynamically import Three.js
     const loadThreeJS = async () => {
       const THREE = await import("three")
@@ -32,15 +42,28 @@ export default function HamiltonianSimulation() {
       // Initialize the 3D scene
       function init() {
         scene = new THREE.Scene()
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+
+        // Force full viewport dimensions
+        const width = window.innerWidth
+        const height = window.innerHeight
+
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
         camera.position.z = 150
 
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-        renderer.setSize(window.innerWidth, window.innerHeight)
+        renderer.setSize(width, height)
         renderer.setPixelRatio(window.devicePixelRatio)
-        renderer.domElement.style.width = "100%"
-        renderer.domElement.style.height = "100%"
+
+        // Force canvas to full size
+        renderer.domElement.style.position = "absolute"
+        renderer.domElement.style.top = "0"
+        renderer.domElement.style.left = "0"
+        renderer.domElement.style.width = "100vw"
+        renderer.domElement.style.height = "100vh"
         renderer.domElement.style.display = "block"
+        renderer.domElement.style.margin = "0"
+        renderer.domElement.style.padding = "0"
+
         container.appendChild(renderer.domElement)
 
         const geometry = new THREE.BufferGeometry()
@@ -60,12 +83,17 @@ export default function HamiltonianSimulation() {
         scene.add(particles)
 
         const handleResize = () => {
-          camera.aspect = window.innerWidth / window.innerHeight
+          const width = window.innerWidth
+          const height = window.innerHeight
+
+          camera.aspect = width / height
           camera.updateProjectionMatrix()
-          renderer.setSize(window.innerWidth, window.innerHeight)
+          renderer.setSize(width, height)
           renderer.setPixelRatio(window.devicePixelRatio)
-          renderer.domElement.style.width = "100%"
-          renderer.domElement.style.height = "100%"
+
+          // Force canvas to full size on resize
+          renderer.domElement.style.width = "100vw"
+          renderer.domElement.style.height = "100vh"
         }
         window.addEventListener("resize", handleResize)
 
@@ -132,8 +160,15 @@ export default function HamiltonianSimulation() {
           const errorDiv = document.createElement("div")
           errorDiv.innerHTML =
             "Could not access the camera. Please ensure you have a camera connected and have granted permission."
-          errorDiv.className =
-            "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-800 p-4 rounded-lg text-white"
+          errorDiv.style.position = "absolute"
+          errorDiv.style.top = "50%"
+          errorDiv.style.left = "50%"
+          errorDiv.style.transform = "translate(-50%, -50%)"
+          errorDiv.style.backgroundColor = "#dc2626"
+          errorDiv.style.padding = "1rem"
+          errorDiv.style.borderRadius = "0.5rem"
+          errorDiv.style.color = "white"
+          errorDiv.style.zIndex = "1000"
           document.body.appendChild(errorDiv)
         }
       }
@@ -265,38 +300,78 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
   }, [])
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-black text-slate-200 overflow-hidden m-0 p-0">
-      <div
-        ref={containerRef}
-        className="absolute inset-0 w-full h-full m-0 p-0"
-        style={{ maxWidth: "none", width: "100vw", height: "100vh" }}
-      />
-
-      <div
-        ref={logContainerRef}
-        className="absolute bottom-8 left-8 w-80 h-48 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
-        style={{
-          scrollbarWidth: "thin",
-          scrollbarColor: "#4b5563 transparent",
-        }}
-      />
-
-      <video ref={videoRef} className="hidden" playsInline autoPlay muted />
-
-      <canvas ref={canvasRef} className="hidden" />
-
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          width: 6px;
+    <>
+      <style jsx global>{`
+        * {
+          margin: 0 !important;
+          padding: 0 !important;
+          box-sizing: border-box !important;
+          max-width: none !important;
         }
-        div::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        div::-webkit-scrollbar-thumb {
-          background-color: #4b5563;
-          border-radius: 3px;
+        html, body, #__next {
+          width: 100vw !important;
+          height: 100vh !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
         }
       `}</style>
-    </div>
+
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          margin: 0,
+          padding: 0,
+          backgroundColor: "#000",
+          color: "#e2e8f0",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          ref={containerRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            margin: 0,
+            padding: 0,
+          }}
+        />
+
+        <div
+          ref={logContainerRef}
+          style={{
+            position: "absolute",
+            bottom: "2rem",
+            left: "2rem",
+            width: "20rem",
+            height: "12rem",
+            backgroundColor: "#111827",
+            borderRadius: "0.5rem",
+            overflowY: "auto",
+            padding: "0.75rem",
+            fontFamily: "monospace",
+            fontSize: "0.75rem",
+            color: "#9ca3af",
+            border: "1px solid #374151",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-all",
+            zIndex: 10,
+            scrollbarWidth: "thin",
+            scrollbarColor: "#4b5563 transparent",
+          }}
+        />
+
+        <video ref={videoRef} style={{ display: "none" }} playsInline autoPlay muted />
+
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+      </div>
+    </>
   )
 }

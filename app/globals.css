@@ -1,46 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
   max-width: none !important;
 }
 
 html,
-body {
+body,
+#__next {
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
   font-family: "Inter", sans-serif;
   background-color: #000;
   color: #e2e8f0;
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-  max-width: none !important;
-}
-
-#__next {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  max-width: none !important;
 }
 
 canvas {
-  display: block;
-  margin: 0;
-  padding: 0;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
   max-width: none !important;
-  width: 100% !important;
-  height: 100% !important;
+  width: 100vw !important;
+  height: 100vh !important;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer utilities {
   .text-balance {
