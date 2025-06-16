@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 export default function HamiltonianSimulation() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -8,7 +8,6 @@ export default function HamiltonianSimulation() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const logContainerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<any>(null)
-  const [resolution, setResolution] = useState(128)
 
   useEffect(() => {
     // Dynamically import Three.js
@@ -28,7 +27,7 @@ export default function HamiltonianSimulation() {
       let scene: any, camera: any, renderer: any, particles: any
       let prevFrameData: number[] | null = null
 
-      const canvasSize = 320
+      const resolution = 256
 
       // Initialize the 3D scene
       function init() {
@@ -40,7 +39,21 @@ export default function HamiltonianSimulation() {
         renderer.setSize(container.clientWidth, container.clientHeight)
         container.appendChild(renderer.domElement)
 
-        createParticles()
+        const geometry = new THREE.BufferGeometry()
+        const vertices: number[] = []
+        for (let i = 0; i < resolution; i++) {
+          for (let j = 0; j < resolution; j++) {
+            vertices.push(j - resolution / 2, -(i - resolution / 2), 0)
+          }
+        }
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3))
+
+        const material = new THREE.PointsMaterial({
+          size: 0.5,
+          vertexColors: true,
+        })
+        particles = new THREE.Points(geometry, material)
+        scene.add(particles)
 
         const handleResize = () => {
           camera.aspect = container.clientWidth / container.clientHeight
@@ -97,42 +110,14 @@ export default function HamiltonianSimulation() {
         }
       }
 
-      function createParticles() {
-        if (particles) {
-          scene.remove(particles)
-          particles.geometry.dispose()
-          particles.material.dispose()
-        }
-
-        const geometry = new THREE.BufferGeometry()
-        const vertices: number[] = []
-        for (let i = 0; i < resolution; i++) {
-          for (let j = 0; j < resolution; j++) {
-            vertices.push(j - resolution / 2, -(i - resolution / 2), 0)
-          }
-        }
-        geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3))
-
-        const material = new THREE.PointsMaterial({
-          size: Math.max(0.3, 1.0 - resolution / 400),
-          vertexColors: true,
-        })
-        particles = new THREE.Points(geometry, material)
-        scene.add(particles)
-
-        if (sceneRef.current) {
-          sceneRef.current.particles = particles
-        }
-      }
-
       async function setupCamera() {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true })
           video.srcObject = stream
           video.onloadedmetadata = () => {
             video.play()
-            canvas2d.width = canvasSize
-            canvas2d.height = canvasSize
+            canvas2d.width = resolution
+            canvas2d.height = resolution
             animate()
           }
         } catch (error) {
@@ -152,10 +137,10 @@ export default function HamiltonianSimulation() {
 
         ctx2d.save()
         ctx2d.scale(-1, 1)
-        ctx2d.drawImage(video, -canvasSize, 0, canvasSize, canvasSize)
+        ctx2d.drawImage(video, -resolution, 0, resolution, resolution)
         ctx2d.restore()
 
-        const currentFrameData = Array.from(ctx2d.getImageData(0, 0, canvasSize, canvasSize).data)
+        const currentFrameData = Array.from(ctx2d.getImageData(0, 0, resolution, resolution).data)
 
         if (prevFrameData) {
           updateHamiltonians(currentFrameData, frameCount++)
@@ -178,44 +163,37 @@ export default function HamiltonianSimulation() {
         const maxCoords = { x: 0, y: 0 }
         const energyCounts = { low: 0, med: 0, high: 0 }
 
-        const stepSize = Math.floor(canvasSize / resolution)
+        for (let i = 0; i < resolution * resolution; i++) {
+          const pixelIndex = i * 4
 
-        for (let i = 0; i < resolution; i++) {
-          for (let j = 0; j < resolution; j++) {
-            const particleIndex = i * resolution + j
-            const canvasX = Math.floor(j * stepSize)
-            const canvasY = Math.floor(i * stepSize)
-            const pixelIndex = (canvasY * canvasSize + canvasX) * 4
+          const brightness =
+            (currentFrameData[pixelIndex] + currentFrameData[pixelIndex + 1] + currentFrameData[pixelIndex + 2]) / 3
+          const V = (brightness / 255) * 10
 
-            const brightness =
-              (currentFrameData[pixelIndex] + currentFrameData[pixelIndex + 1] + currentFrameData[pixelIndex + 2]) / 3
-            const V = (brightness / 255) * 10
+          const prevBrightness =
+            (prevFrameData![pixelIndex] + prevFrameData![pixelIndex + 1] + prevFrameData![pixelIndex + 2]) / 3
+          const T = (Math.abs(brightness - prevBrightness) / 255) * 10
 
-            const prevBrightness =
-              (prevFrameData![pixelIndex] + prevFrameData![pixelIndex + 1] + prevFrameData![pixelIndex + 2]) / 3
-            const T = (Math.abs(brightness - prevBrightness) / 255) * 10
+          const H = T + V
+          positions[i * 3 + 2] = H * 1.5
 
-            const H = T + V
-            positions[particleIndex * 3 + 2] = H * 1.5
+          sumH += H
+          sumT += T
+          sumV += V
 
-            sumH += H
-            sumT += T
-            sumV += V
-
-            if (H > maxH) {
-              maxH = H
-              maxCoords.x = Math.round(positions[particleIndex * 3])
-              maxCoords.y = Math.round(positions[particleIndex * 3 + 1])
-            }
-
-            // Energy distribution based on average potential energy thresholds
-            if (H < 3) energyCounts.low++
-            else if (H < 8) energyCounts.med++
-            else energyCounts.high++
-
-            color.setHSL(0.7 - (H / 20) * 0.7, 1.0, 0.5)
-            colors.push(color.r, color.g, color.b)
+          if (H > maxH) {
+            maxH = H
+            maxCoords.x = Math.round(positions[i * 3])
+            maxCoords.y = Math.round(positions[i * 3 + 1])
           }
+
+          // Energy distribution based on average potential energy thresholds
+          if (H < 3) energyCounts.low++
+          else if (H < 8) energyCounts.med++
+          else energyCounts.high++
+
+          color.setHSL(0.7 - (H / 20) * 0.7, 1.0, 0.5)
+          colors.push(color.r, color.g, color.b)
         }
         particles.geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3))
         particles.geometry.attributes.position.needsUpdate = true
@@ -268,11 +246,6 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
       // Initialize everything
       init()
       setupCamera()
-
-      // Recreate particles when resolution changes
-      return () => {
-        createParticles()
-      }
     }
 
     loadThreeJS()
@@ -283,7 +256,7 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
         sceneRef.current.cleanup()
       }
     }
-  }, [resolution])
+  }, [])
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black text-slate-200 overflow-hidden">
@@ -291,46 +264,12 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
 
       <div
         ref={logContainerRef}
-        className="absolute bottom-8 left-8 w-80 h-56 bg-neutral-800 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-300 border border-neutral-600 whitespace-pre-wrap break-all z-10"
+        className="absolute bottom-8 left-8 w-80 h-48 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
         style={{
           scrollbarWidth: "thin",
-          scrollbarColor: "#525252 transparent",
+          scrollbarColor: "#4b5563 transparent",
         }}
       />
-
-      <div className="absolute bottom-8 left-8 w-80 h-56 bg-neutral-800 rounded-lg p-3 font-mono text-xs text-gray-300 border border-neutral-600 z-10">
-        <div className="mb-3 pb-2 border-b border-neutral-600">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-400">Resolution:</span>
-            <span className="text-gray-300 font-semibold">
-              {resolution}×{resolution}
-            </span>
-          </div>
-          <input
-            type="range"
-            min="32"
-            max="256"
-            step="16"
-            value={resolution}
-            onChange={(e) => setResolution(Number.parseInt(e.target.value))}
-            className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer slider"
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>32</span>
-            <span>256</span>
-          </div>
-        </div>
-
-        <div
-          ref={logContainerRef}
-          className="overflow-y-auto whitespace-pre-wrap break-all"
-          style={{
-            height: "calc(100% - 80px)",
-            scrollbarWidth: "thin",
-            scrollbarColor: "#525252 transparent",
-          }}
-        />
-      </div>
 
       <video ref={videoRef} className="hidden" playsInline autoPlay muted />
 
@@ -344,25 +283,8 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
           background: transparent;
         }
         div::-webkit-scrollbar-thumb {
-          background-color: #525252;
+          background-color: #4b5563;
           border-radius: 3px;
-        }
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          background: #d1d5db;
-          cursor: pointer;
-          border: 2px solid #374151;
-        }
-        .slider::-moz-range-thumb {
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          background: #d1d5db;
-          cursor: pointer;
-          border: 2px solid #374151;
         }
       `}</style>
     </div>
