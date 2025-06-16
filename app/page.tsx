@@ -225,7 +225,7 @@ export default function HamiltonianSimulation() {
       }) {
         let systemState = "System Stable"
         if (data.avgT > 0.8) systemState = "High Motion Detected!"
-        else if (data.avgV > 5) systemState = "High Energy Concentration"
+        else if (data.avgV > 8) systemState = "High Energy Concentration"
 
         const lowPercent = (data.energyCounts.low / data.totalPoints) * 100
         const medPercent = (data.energyCounts.med / data.totalPoints) * 100
