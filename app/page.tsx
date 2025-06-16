@@ -32,15 +32,11 @@ export default function HamiltonianSimulation() {
       // Initialize the 3D scene
       function init() {
         scene = new THREE.Scene()
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+        camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)
         camera.position.z = 150
 
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-        renderer.setSize(window.innerWidth, window.innerHeight)
-        renderer.setPixelRatio(window.devicePixelRatio)
-        renderer.domElement.style.width = "100%"
-        renderer.domElement.style.height = "100%"
-        renderer.domElement.style.display = "block"
+        renderer.setSize(container.clientWidth, container.clientHeight)
         container.appendChild(renderer.domElement)
 
         const geometry = new THREE.BufferGeometry()
@@ -60,12 +56,9 @@ export default function HamiltonianSimulation() {
         scene.add(particles)
 
         const handleResize = () => {
-          camera.aspect = window.innerWidth / window.innerHeight
+          camera.aspect = container.clientWidth / container.clientHeight
           camera.updateProjectionMatrix()
-          renderer.setSize(window.innerWidth, window.innerHeight)
-          renderer.setPixelRatio(window.devicePixelRatio)
-          renderer.domElement.style.width = "100%"
-          renderer.domElement.style.height = "100%"
+          renderer.setSize(container.clientWidth, container.clientHeight)
         }
         window.addEventListener("resize", handleResize)
 
@@ -194,8 +187,9 @@ export default function HamiltonianSimulation() {
             maxCoords.y = Math.round(positions[i * 3 + 1])
           }
 
-          if (H < 5) energyCounts.low++
-          else if (H < 12) energyCounts.med++
+          // Energy distribution based on average potential energy thresholds
+          if (H < 3) energyCounts.low++
+          else if (H < 8) energyCounts.med++
           else energyCounts.high++
 
           color.setHSL(0.7 - (H / 20) * 0.7, 1.0, 0.5)
@@ -265,12 +259,8 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
   }, [])
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-black text-slate-200 overflow-hidden m-0 p-0">
-      <div
-        ref={containerRef}
-        className="absolute inset-0 w-full h-full m-0 p-0"
-        style={{ maxWidth: "none", width: "100vw", height: "100vh" }}
-      />
+    <div className="fixed inset-0 w-full h-full bg-black text-slate-200 overflow-hidden">
+      <div ref={containerRef} className="absolute inset-0 w-full h-full" />
 
       <div
         ref={logContainerRef}

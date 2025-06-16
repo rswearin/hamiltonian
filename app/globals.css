@@ -2,13 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  max-width: none !important;
-}
-
 html,
 body {
   font-family: "Inter", sans-serif;
@@ -16,30 +9,18 @@ body {
   color: #e2e8f0;
   margin: 0;
   padding: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-  max-width: none !important;
 }
 
 #__next {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  max-width: none !important;
+  width: 100%;
+  height: 100%;
 }
 
 canvas {
   display: block;
-  margin: 0;
-  padding: 0;
-  max-width: none !important;
-  width: 100% !important;
-  height: 100% !important;
 }
 
 @layer utilities {
