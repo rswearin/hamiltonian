@@ -32,11 +32,12 @@ export default function HamiltonianSimulation() {
       // Initialize the 3D scene
       function init() {
         scene = new THREE.Scene()
-        camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
         camera.position.z = 150
 
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-        renderer.setSize(container.clientWidth, container.clientHeight)
+        renderer.setSize(window.innerWidth, window.innerHeight)
+        renderer.setPixelRatio(window.devicePixelRatio)
         container.appendChild(renderer.domElement)
 
         const geometry = new THREE.BufferGeometry()
@@ -56,9 +57,10 @@ export default function HamiltonianSimulation() {
         scene.add(particles)
 
         const handleResize = () => {
-          camera.aspect = container.clientWidth / container.clientHeight
+          camera.aspect = window.innerWidth / window.innerHeight
           camera.updateProjectionMatrix()
-          renderer.setSize(container.clientWidth, container.clientHeight)
+          renderer.setSize(window.innerWidth, window.innerHeight)
+          renderer.setPixelRatio(window.devicePixelRatio)
         }
         window.addEventListener("resize", handleResize)
 
@@ -258,12 +260,12 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
   }, [])
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-black text-slate-200 overflow-hidden">
-      <div ref={containerRef} className="absolute inset-0 w-full h-full" />
+    <div className="fixed inset-0 w-full h-full bg-black text-slate-200 overflow-hidden m-0 p-0">
+      <div ref={containerRef} className="absolute inset-0 w-full h-full m-0 p-0" />
 
       <div
         ref={logContainerRef}
-        className="absolute bottom-8 left-8 w-80 h-40 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
+        className="absolute bottom-8 left-8 w-80 h-56 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#4b5563 transparent",
