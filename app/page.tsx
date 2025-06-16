@@ -38,6 +38,9 @@ export default function HamiltonianSimulation() {
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
         renderer.setSize(window.innerWidth, window.innerHeight)
         renderer.setPixelRatio(window.devicePixelRatio)
+        renderer.domElement.style.width = "100%"
+        renderer.domElement.style.height = "100%"
+        renderer.domElement.style.display = "block"
         container.appendChild(renderer.domElement)
 
         const geometry = new THREE.BufferGeometry()
@@ -61,6 +64,8 @@ export default function HamiltonianSimulation() {
           camera.updateProjectionMatrix()
           renderer.setSize(window.innerWidth, window.innerHeight)
           renderer.setPixelRatio(window.devicePixelRatio)
+          renderer.domElement.style.width = "100%"
+          renderer.domElement.style.height = "100%"
         }
         window.addEventListener("resize", handleResize)
 
@@ -261,11 +266,15 @@ High: [${highBar.padEnd(barLength)}] ${highPercent.toFixed(1)}%`
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black text-slate-200 overflow-hidden m-0 p-0">
-      <div ref={containerRef} className="absolute inset-0 w-full h-full m-0 p-0" />
+      <div
+        ref={containerRef}
+        className="absolute inset-0 w-full h-full m-0 p-0"
+        style={{ maxWidth: "none", width: "100vw", height: "100vh" }}
+      />
 
       <div
         ref={logContainerRef}
-        className="absolute bottom-8 left-8 w-80 h-56 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
+        className="absolute bottom-8 left-8 w-80 h-48 bg-gray-900 rounded-lg overflow-y-auto p-3 font-mono text-xs text-gray-400 border border-gray-600 whitespace-pre-wrap break-all z-10"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#4b5563 transparent",

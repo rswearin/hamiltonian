@@ -6,6 +6,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  max-width: none !important;
 }
 
 html,
@@ -21,6 +22,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
+  max-width: none !important;
 }
 
 #__next {
@@ -28,12 +30,16 @@ body {
   height: 100vh;
   margin: 0;
   padding: 0;
+  max-width: none !important;
 }
 
 canvas {
   display: block;
   margin: 0;
   padding: 0;
+  max-width: none !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 @layer utilities {
